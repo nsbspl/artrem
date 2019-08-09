@@ -3,7 +3,7 @@ addpath (genpath ('C:\Users\taham\OneDrive - UHN\DBS_PD'))
 addpath(genpath('C:\Users\taham\Dropbox'))
 
 load alldata;
-inp=6; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:  ');
+inp=6; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:   ');
 NumCol = alldata(inp).nbchan;
 dpts=length(alldata(inp).data(:,1)); %this returns the total number of datapoints
 
