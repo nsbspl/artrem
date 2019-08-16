@@ -125,10 +125,10 @@ legend('Average of all trials','smoothed estimate')
 %% Adaptive Filtering
 mu = 1;                % NLMS step size
 offset = 10;           % NLMS offset
-err_nlms = zeros(size(d));
+err_nlms = zeros(size(d)-3);
 for i = 1:size(d,2)
     lms = dsp.LMSFilter('Length',20,'Method','Normalized LMS','StepSize',mu,'LeakageFactor',1);
-    [y,err] = lms(d(:,i),mu_i);
+    [y,err] = lms(d(4:end,i),mu_i);
     err_nlms(:,i) = err;
 end
 
