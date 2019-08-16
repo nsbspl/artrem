@@ -2,6 +2,9 @@
 addpath (genpath ('C:\Users\taham\OneDrive - UHN\DBS_PD'))
 addpath(genpath('C:\Users\taham\Dropbox'))
 
+%this one for idir's PC
+addpath(genpath('C:\Users\User\Desktop\Taha\EEG_data'))
+
 load alldata;
 inp=6; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:   ');
 NumCol = alldata(inp).nbchan;
@@ -29,13 +32,12 @@ data_Matrix = [alldata(inp).times alldata(inp).data];
 figure; hold on,
 plot(data_Matrix(:,1),data_Matrix(:,13));
 
-
 %% Find the peaks to select the individual trials
 % --- Note: we should finally use the DBS onset for this purpose
 dt = 0.05;% msec
 Fs = 1/dt;% msec
 sig = data_Matrix(35e3:250e3,13); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
-sig = -(sig - mean(sig));
+sig = (sig - mean(sig));
 figure; plot(sig)
 
 a_max = max(sig);
@@ -57,11 +59,12 @@ for i = 1:length(indx)
     [pks,locs] = max(sig(indx(i)-10:indx(i)+10));
     indx_pks(i) = indx(i) - 10 - 1 + locs;
 end
-L_sel = 0.2e3/dt;% L_sel = 50;
+L_sel = 400;% L_sel = 400;
 sig_N = zeros(length(indx),L_sel+1);
-for i = 1:76 %length(indx)
+
+for i = 1:50 %length(indx)
 %     sig_N(i,:) = sig(indx_pks(i)-L_sel/2:indx_pks(i)+L_sel/2)';
-    sig_N(i,:) = sig(indx_pks(i) - 10:indx_pks(i)+L_sel-10)';
+    sig_N(i,:) = sig(indx_pks(i)-20 : indx_pks(i)+L_sel-20)';
 end
 
 figure; plot(sig_N(1:end,:)','k')
@@ -84,7 +87,7 @@ title('Individual trials')
 %% Crop the individual trials from their min, and normalize them
 sig_test = zeros(size(sig_N));
 d = zeros(length(sig_N),1);
-for i = 1:75%size(sig_N,1)
+for i = 1:50%size(sig_N,1)
     [pks,ind_min] = min(sig_N(i,:));
     test = -sig_N(i,ind_min:end);
     s_test = (test-mean(test))/max((test-mean(test)));
@@ -96,12 +99,12 @@ title('individual trials trimmed from their min')
 
 
 %% Fitting spline to each individual (purpose: to further remove the common signal (information) from each indiviual trial)
-L_seg = 200; % samples --> this is for the artifact interval only
+L_seg = 51; % samples --> this is for the artifact interval only
 Des = mean(d,2);%
-Ni = [Des(1:L_seg)];% ; zeros(length(Des)-200,1)];% signal to be smoothed (estimated by spline method)
+Ni = Des(4:L_seg);% ; zeros(length(Des)-200,1)];% signal to be smoothed (estimated by spline method)
 numBin = 7;
 tt = (1:length(Ni))*dt;
-b = [tt(1):numBin*dt:tt(end)];% knots
+b = tt(1):numBin*dt:tt(end);% knots
         myI = eye(length(b));
         X = spline(b,myI,tt)*dt;
         ki = (X*X')^-1 * X*Ni;
