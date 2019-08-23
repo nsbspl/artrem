@@ -99,10 +99,10 @@ title('individual trials trimmed from their min')
 
 
 %% Fitting spline to each individual (purpose: to further remove the common signal (information) from each indiviual trial)
-L_seg = 51; % samples --> this is for the artifact interval only
+L_seg = 300; % samples --> this is for the artifact interval only
 Des = mean(d,2);%
 Ni = Des(4:L_seg);% ; zeros(length(Des)-200,1)];% signal to be smoothed (estimated by spline method)
-numBin = 7;
+numBin = 80;
 tt = (1:length(Ni))*dt;
 b = tt(1):numBin*dt:tt(end);% knots
         myI = eye(length(b));
