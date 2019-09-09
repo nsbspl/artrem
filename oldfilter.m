@@ -1,12 +1,12 @@
 %% Import the data from 'alldata.m'
-addpath (genpath ('C:\Users\taham\OneDrive - UHN\DBS_PD'))
-addpath(genpath('C:\Users\taham\Dropbox'))
+% addpath (genpath ('C:\Users\taham\OneDrive - UHN\DBS_PD'))
+% addpath(genpath('C:\Users\taham\Dropbox'))
 
-%this one for idir's PC
-addpath(genpath('C:\Users\User\Desktop\Taha\EEG_data'))
+% %this one for idir's PC
+% addpath(genpath('C:\Users\User\Desktop\Taha\EEG_data'))
 
-load alldata;
-inp=6; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:   ');
+% load alldata;
+inp=1; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:   ');
 NumCol = alldata(inp).nbchan;
 dpts=length(alldata(inp).data(:,1)); %this returns the total number of datapoints
 
@@ -30,13 +30,13 @@ data_Matrix = [alldata(inp).times alldata(inp).data];
 
 %% Plottings
 figure; hold on,
-plot(data_Matrix(:,1),data_Matrix(:,13));
+plot(data_Matrix(:,1),data_Matrix(:,17)); %13->17
 
 %% Find the peaks to select the individual trials
 % --- Note: we should finally use the DBS onset for this purpose
 dt = 0.05;% msec
 Fs = 1/dt;% msec
-sig = data_Matrix(35e3:250e3,13); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
+sig = data_Matrix(31e3:114e3,17); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
 sig = (sig - mean(sig));
 figure; plot(sig)
 
@@ -55,16 +55,16 @@ indx = find([0;sig]<Amp_th & [sig;0]>=Amp_th);
 %% continue
 indx_pks = zeros(length(indx),1);
 
-for i = 1:length(indx)
+for i = 2:length(indx)
     [pks,locs] = max(sig(indx(i)-10:indx(i)+10));
     indx_pks(i) = indx(i) - 10 - 1 + locs;
 end
-L_sel = 400;% L_sel = 400;
+L_sel = 100;% L_sel = 400;
 sig_N = zeros(length(indx),L_sel+1);
 
-for i = 1:50 %length(indx)
-%     sig_N(i,:) = sig(indx_pks(i)-L_sel/2:indx_pks(i)+L_sel/2)';
-    sig_N(i,:) = sig(indx_pks(i)-20 : indx_pks(i)+L_sel-20)';
+for i = 2:length(indx) %length(indx)
+ %  sig_N(i,:) = sig(indx_pks(i)-L_sel/2:indx_pks(i)+L_sel/2)';
+    sig_N(i,:) = sig(indx_pks(i)-10 : indx_pks(i)+L_sel-10)';
 end
 
 figure; plot(sig_N(1:end,:)','k')
