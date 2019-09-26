@@ -1,11 +1,11 @@
 %% add paths
 
 % the first two, for taha's laptop
-%addpath (genpath ('C:\Users\taham\OneDrive - UHN\DBS_PD'))
+addpath (genpath ('C:\Users\taham\OneDrive - UHN\DBS_PD'))
 %addpath(genpath('C:\Users\taham\Dropbox'))
 
 %this one for idir's PC
-addpath(genpath('C:\Users\User\Desktop\Taha\EEG_data'))
+%addpath(genpath('C:\Users\User\Desktop\Taha\EEG_data'))
 %
 
 %% Import the data from central database to data_matrix [accessible variable for the purpose of this code]
