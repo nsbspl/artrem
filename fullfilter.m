@@ -3,6 +3,8 @@
 % the first two, for taha's laptop
 addpath (genpath ('C:\Users\taham\OneDrive - UHN\DBS_PD'))
 %addpath(genpath('C:\Users\taham\Dropbox'))
+% hello
+
 
 %this one for idir's PC
 %addpath(genpath('C:\Users\User\Desktop\Taha\EEG_data'))
