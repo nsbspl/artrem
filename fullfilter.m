@@ -1,5 +1,5 @@
 %% add paths
-
+% helllllo
 % the first two, for taha's laptop
 addpath (genpath ('C:\Users\taham\OneDrive - UHN\DBS_PD'))
 %addpath(genpath('C:\Users\taham\Dropbox'))
