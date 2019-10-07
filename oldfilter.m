@@ -5,8 +5,8 @@
 % %this one for idir's PC
 % addpath(genpath('C:\Users\User\Desktop\Taha\EEG_data'))
 
-% load alldata;
-inp=1; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:   ');
+%load alldata;
+inp=6; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=Paul 6=500msec:   ');
 NumCol = alldata(inp).nbchan;
 dpts=length(alldata(inp).data(:,1)); %this returns the total number of datapoints
 
@@ -41,8 +41,8 @@ sig = (sig - mean(sig));
 figure; plot(sig)
 
 a_max = max(sig);
-Amp_th = a_max/10;
-indx = find([0;sig]<Amp_th & [sig;0]>=Amp_th);
+Amp_th = a_max/30;
+indx = find([sig;0]>=Amp_th); %[0;sig]<Amp_th & 
 
 %% event finder (for prep1,2,5): Uses the event marking on the data
 % dbsonset = alldata(inp).events.latency;
@@ -55,16 +55,16 @@ indx = find([0;sig]<Amp_th & [sig;0]>=Amp_th);
 %% continue
 indx_pks = zeros(length(indx),1);
 
-for i = 2:length(indx)
-    [pks,locs] = max(sig(indx(i)-10:indx(i)+10));
+for i = 2:length(indx)-1
+    [pks,locs] = max(sig(indx(i)-5:indx(i)+5));
     indx_pks(i) = indx(i) - 10 - 1 + locs;
 end
-L_sel = 100;% L_sel = 400;
+L_sel = 100; %add meaningful comment here NTS
 sig_N = zeros(length(indx),L_sel+1);
 
-for i = 2:length(indx) %length(indx)
+for i = 2:length(indx)-10 %length(indx)
  %  sig_N(i,:) = sig(indx_pks(i)-L_sel/2:indx_pks(i)+L_sel/2)';
-    sig_N(i,:) = sig(indx_pks(i)-10 : indx_pks(i)+L_sel-10)';
+    sig_N(i,:) = sig(indx_pks(i)-5 : indx_pks(i)+L_sel-5)';
 end
 
 figure; plot(sig_N(1:end,:)','k')
@@ -98,7 +98,7 @@ figure; plot(d)
 title('individual trials trimmed from their min')
 
 
-%% Fitting spline to each individual (purpose: to further remove the common signal (information) from each indiviual trial)
+%% Fitting B-spline to each individual pulse (purpose: to further remove the common signal (information) from each indiviual trial)
 L_seg = 300; % samples --> this is for the artifact interval only
 Des = mean(d,2);%
 Ni = Des(4:L_seg);% ; zeros(length(Des)-200,1)];% signal to be smoothed (estimated by spline method)
