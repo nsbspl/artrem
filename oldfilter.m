@@ -6,14 +6,14 @@
 % addpath(genpath('C:\Users\User\Desktop\Taha\EEG_data'))
 
 %% De-comment this for using alldata.mat
-% % %load alldata;
-% % inp=5; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=Paul 6=500msec:   ');
-% % NumCol = alldata(inp).nbchan;
-% % dpts=length(alldata(inp).data(:,1)); %this returns the total number of datapoints
-% % 
-% % data_Matrix = [alldata(inp).times alldata(inp).data];
-
+%load alldata;
+% inp=1; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:   ');
+% NumCol = alldata(inp).nbchan;
+% dpts=length(alldata(inp).data(:,1)); %this returns the total number of datapoints
+% 
+% data_Matrix = [alldata(inp).times alldata(inp).data];
 %% 10-20 nsystem EEG (These lines remove headers from text data, if implemented)
+NumCol=2;
 fid = fopen('chenlab_file1_data.txt');
 data = textscan(fid, '%*s %f %*[^\n]','HeaderLines',1);
 fid = fclose(fid);
@@ -21,7 +21,7 @@ vec = data{1,1};
 L = length(vec);
 data_Matrix = zeros(L,NumCol);
 
-      % These Lines make an array out of the tab delimited data
+      % This makes an array out of the tab delimited data
 for i = 1:NumCol
 fid = fopen('chenlab_file1_data.txt');
 data = textscan(fid, [repmat('%*s',1,i-1), '%f', '%*[^\n]'],'HeaderLines',1);
@@ -31,19 +31,19 @@ end
 
 %% Plottings
 figure; hold on,
-plot(data_Matrix(:,1),data_Matrix(:,17)); %13->17
+plot(data_Matrix(:,1),data_Matrix(:,NumCol));
 
 %% Find the peaks to select the individual trials
 % --- Note: we should finally use the DBS onset for this purpose
 dt = 0.05;% msec
 Fs = 1/dt;% msec
-sig = data_Matrix(30e3:40e3,17); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
+sig = data_Matrix(20e3:60e3,2); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
 sig = (sig - mean(sig));
 figure; plot(sig)
 
 a_max = max(sig);
-Amp_th = a_max/10;
-indx = find([sig;0]>=Amp_th); %[0;sig]<Amp_th & 
+Amp_th = a_max/20;
+indx = find([0;sig]<Amp_th & [sig;0]>=Amp_th);
 
 %% event finder (for prep1,2,5): Uses the event marking on the data
 % dbsonset = alldata(inp).events.latency;
@@ -56,16 +56,21 @@ indx = find([sig;0]>=Amp_th); %[0;sig]<Amp_th &
 %% continue
 indx_pks = zeros(length(indx),1);
 
-for i = 2:length(indx)-1
-    [pks,locs] = max(sig(indx(i)-5:indx(i)+5));
-    indx_pks(i) = indx(i) - 10 - 1 + locs;
+for i = 2:length(indx)
+    backshift = 5;
+    [pks,locs] = max(sig(indx(i)-backshift:indx(i)+backshift));
+    indx_pks(i) = indx(i) - backshift - 1 + locs;
 end
-L_sel = 100; %add meaningful comment here NTS
-sig_N = zeros(length(indx),L_sel+1);
+L_sel = 150;% L_sel = 400;
 
-for i = 2:length(indx)-10 %length(indx)
+figure; plot(sig_N(1:end,:)','k')
+hold on,
+plot(mean(sig_N,1),'r','LineWidth',3)
+title('Individual trials')
+
+for i = 2:length(indx) %length(indx)
  %  sig_N(i,:) = sig(indx_pks(i)-L_sel/2:indx_pks(i)+L_sel/2)';
-    sig_N(i,:) = sig(indx_pks(i)-5 : indx_pks(i)+L_sel-5)';
+    sig_N(i,:) = sig(indx_pks(i)-backshift : indx_pks(i)+L_sel-backshift)';
 end
 
 figure; plot(sig_N(1:end,:)','k')
@@ -87,8 +92,9 @@ title('Individual trials')
 
 %% Crop the individual trials from their min, and normalize them
 sig_test = zeros(size(sig_N));
-d = zeros(length(sig_N),1);
-for i = 1:50%size(sig_N,1)
+d = zeros(L_sel,1);
+
+for i = 1:length(indx) %size(sig_N,1)
     [pks,ind_min] = min(sig_N(i,:));
     test = -sig_N(i,ind_min:end);
     s_test = (test-mean(test))/max((test-mean(test)));
@@ -98,9 +104,8 @@ end
 figure; plot(d)
 title('individual trials trimmed from their min')
 
-
-%% Fitting B-spline to each individual pulse (purpose: to further remove the common signal (information) from each indiviual trial)
-L_seg = 300; % samples --> this is for the artifact interval only
+%% Fitting spline to each individual (purpose: to further remove the common signal (information) from each indiviual trial)
+L_seg = 70; % samples --> this is for the artifact interval only
 Des = mean(d,2);%
 Ni = Des(4:L_seg);% ; zeros(length(Des)-200,1)];% signal to be smoothed (estimated by spline method)
 numBin = 80;
