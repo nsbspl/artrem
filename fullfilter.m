@@ -26,14 +26,15 @@ end
 
 %% Plottings
 figure; hold on,
-plot(data_Matrix(:,1),data_Matrix(:,2));
+inq_col = 2;
+plot(data_Matrix(:,1),data_Matrix(:,inq_col));
 
 
 %% Find the peaks to select the individual trials
 % --- Note: we should finally use the DBS onset for this purpose
 dt = 0.05;% msec
 Fs = 1/dt;% msec
-sig = data_Matrix(35e3:250e3,2); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
+sig = data_Matrix(35e3:250e3,inq_col); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
 sig = -(sig - mean(sig));
 figure; plot(sig)
 
