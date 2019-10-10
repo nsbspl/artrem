@@ -6,7 +6,6 @@
 % 
 % data_Matrix = [alldata(inp).times alldata(inp).data];
 
-
 %% 10-20 nsystem EEG (These lines remove headers from text data, if implemented)
 NumCol=2;
 fid = fopen('chenlab_file1_data.txt');
