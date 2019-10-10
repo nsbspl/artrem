@@ -5,28 +5,29 @@
 % %this one for idir's PC
 % addpath(genpath('C:\Users\User\Desktop\Taha\EEG_data'))
 
-%load alldata;
-inp=6; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=Paul 6=500msec:   ');
-NumCol = alldata(inp).nbchan;
-dpts=length(alldata(inp).data(:,1)); %this returns the total number of datapoints
-
-data_Matrix = [alldata(inp).times alldata(inp).data];
+%% De-comment this for using alldata.mat
+% % %load alldata;
+% % inp=5; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=Paul 6=500msec:   ');
+% % NumCol = alldata(inp).nbchan;
+% % dpts=length(alldata(inp).data(:,1)); %this returns the total number of datapoints
+% % 
+% % data_Matrix = [alldata(inp).times alldata(inp).data];
 
 %% 10-20 nsystem EEG (These lines remove headers from text data, if implemented)
-% fid = fopen('expon.txt');
-% data = textscan(fid, '%*s %f %*[^\n]','HeaderLines',1);
-% fid = fclose(fid);
-%vec = data{1,1};
-%L = length(vec);
-%data_Matrix = zeros(L,NumCol);
+fid = fopen('chenlab_file1_data.txt');
+data = textscan(fid, '%*s %f %*[^\n]','HeaderLines',1);
+fid = fclose(fid);
+vec = data{1,1};
+L = length(vec);
+data_Matrix = zeros(L,NumCol);
 
-%       These Lines make an array out of the tab delimited data
-% for i = 1:NumCol
-% fid = fopen('expon.txt');
-% data = textscan(fid, [repmat('%*s',1,i-1), '%f', '%*[^\n]'],'HeaderLines',1);
-% fid = fclose(fid); 
-% data_Matrix(:,i) = data{1,1};
-% end
+      % These Lines make an array out of the tab delimited data
+for i = 1:NumCol
+fid = fopen('chenlab_file1_data.txt');
+data = textscan(fid, [repmat('%*s',1,i-1), '%f', '%*[^\n]'],'HeaderLines',1);
+fid = fclose(fid); 
+data_Matrix(:,i) = data{1,1};
+end
 
 %% Plottings
 figure; hold on,
@@ -36,12 +37,12 @@ plot(data_Matrix(:,1),data_Matrix(:,17)); %13->17
 % --- Note: we should finally use the DBS onset for this purpose
 dt = 0.05;% msec
 Fs = 1/dt;% msec
-sig = data_Matrix(31e3:114e3,17); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
+sig = data_Matrix(30e3:40e3,17); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
 sig = (sig - mean(sig));
 figure; plot(sig)
 
 a_max = max(sig);
-Amp_th = a_max/30;
+Amp_th = a_max/10;
 indx = find([sig;0]>=Amp_th); %[0;sig]<Amp_th & 
 
 %% event finder (for prep1,2,5): Uses the event marking on the data
