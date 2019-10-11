@@ -54,8 +54,9 @@ indx = find([0;sig]<Amp_th & [sig;0]>=Amp_th);
 indx_pks = zeros(length(indx),1);
 
 for i = 1:length(indx)
-    [pks,locs] = max(sig(indx(i)-10:indx(i)+10));
-    indx_pks(i) = indx(i) - 20 - 1 + locs;
+    a = 10; % 2a is the length of searching interval for the peaks.                  
+    [pks,locs] = max(sig(indx(i)-a:indx(i)+a));
+    indx_pks(i) = indx(i) - a - 1 + locs;
 end
 L_sel = 0.2e3/dt;% L_sel = 50;
 sig_N = zeros(length(indx),L_sel+1);
