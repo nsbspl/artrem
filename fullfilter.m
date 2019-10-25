@@ -1,39 +1,42 @@
 %% Import the data from 'alldata.m'
-% load alldata;
-% inp=input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:  ');
-% NumCol = alldata(inp).nbchan;
-% dpts=length(alldata(inp).data(:,1)); %this returns the total number of datapoints
-% 
-% data_Matrix = [alldata(inp).times alldata(inp).data];
+%load alldata;
+inp = 5; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:  ');
+NumCol = alldata(inp).nbchan;
+dpts = length(alldata(inp).data(:,1)); %this returns the total number of datapoints
+inq_col = 11;
+
+data_Matrix = [alldata(inp).times alldata(inp).data(:,inq_col)];
+
 
 %% 10-20 nsystem EEG (These lines remove headers from text data, if implemented)
-NumCol=2;
-fid = fopen('chenlab_file1_data.txt');
-data = textscan(fid, '%*s %f %*[^\n]','HeaderLines',1);
-fid = fclose(fid);
-vec = data{1,1};
-L = length(vec);
-data_Matrix = zeros(L,NumCol);
+% NumCol=2;
+% fid = fopen('chenlab_file1_data.txt');
+% data = textscan(fid, '%*s %f %*[^\n]','HeaderLines',1);
+% fid = fclose(fid);
+% vec = data{1,1};
+% L = length(vec);
+% data_Matrix = zeros(L,NumCol);
+% 
+%       % This makes an array out of the tab delimited data
+% for i = 1:NumCol
+% fid = fopen('chenlab_file1_data.txt');
+% data = textscan(fid, [repmat('%*s',1,i-1), '%f', '%*[^\n]'],'HeaderLines',1);
+% fid = fclose(fid); 
+% data_Matrix(:,i) = data{1,1};
+% end
+% inq_col = 2;
 
-      % This makes an array out of the tab delimited data
-for i = 1:NumCol
-fid = fopen('chenlab_file1_data.txt');
-data = textscan(fid, [repmat('%*s',1,i-1), '%f', '%*[^\n]'],'HeaderLines',1);
-fid = fclose(fid); 
-data_Matrix(:,i) = data{1,1};
-end
 
 %% Plottings
 figure; hold on,
-inq_col = 2;
-plot(data_Matrix(:,1),data_Matrix(:,inq_col));
+plot(data_Matrix(:,1),data_Matrix(:,2));
 
 
 %% Find the peaks to select the individual trials
 % --- Note: we should finally use the DBS onset for this purpose
 dt = 0.05;% msec
 Fs = 1/dt;% msec
-sig = data_Matrix(35e3:250e3,inq_col); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
+sig = data_Matrix(35e3:250e3,2); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
 sig = -(sig - mean(sig));
 figure; plot(sig)
 
