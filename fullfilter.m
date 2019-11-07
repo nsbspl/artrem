@@ -100,6 +100,8 @@ title('individual trials trimmed from their min')
 
 %% Fitting spline to each individual (purpose: to further remove the common signal (information) from each indiviual trial)
 L_seg = 200; % samples --> this is for the artifact interval only
+             % should this be the same as L_sel in line 63? Thus make this
+             % a variable in line 63.
 Des = mean(d,2);%
 Ni = [Des(1:L_seg)];% ; zeros(length(Des)-200,1)];% signal to be smoothed (estimated by spline method)
 numBin = 7;
