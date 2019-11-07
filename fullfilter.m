@@ -3,7 +3,7 @@
 inp = 5; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:  ');
 NumCol = alldata(inp).nbchan;
 dpts = length(alldata(inp).data(:,1)); %this returns the total number of datapoints
-inq_col = 11;
+inq_col = 1;
 
 data_Matrix = [alldata(inp).times alldata(inp).data(:,inq_col)];
 
@@ -60,7 +60,7 @@ for i = 1:length(indx)
     [pks,locs] = max(sig(indx(i)-a:indx(i)+a));
     indx_pks(i) = indx(i) - a - 1 + locs;
 end
-L_sel = 0.2e3/dt;% L_sel = 50;
+L_sel = 0.2e3/dt;% L_sel = 50; %the length of the whole template
 sig_N = zeros(length(indx),L_sel+1);
 for i = 1:length(indx)
 %     sig_N(i,:) = sig(indx_pks(i)-L_sel/2:indx_pks(i)+L_sel/2)';
@@ -99,9 +99,7 @@ title('individual trials trimmed from their min')
 
 
 %% Fitting spline to each individual (purpose: to further remove the common signal (information) from each indiviual trial)
-L_seg = 200; % samples --> this is for the artifact interval only
-             % should this be the same as L_sel in line 63? Thus make this
-             % a variable in line 63.
+L_seg = 200; % samples --> this is for the artifact interval only             
 Des = mean(d,2);%
 Ni = [Des(1:L_seg)];% ; zeros(length(Des)-200,1)];% signal to be smoothed (estimated by spline method)
 numBin = 7;
