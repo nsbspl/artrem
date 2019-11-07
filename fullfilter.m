@@ -1,12 +1,14 @@
 %% Import the data from 'alldata.m'
 %load alldata;
-inp = 5; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:  ');
+inp = 5; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:   ');
 NumCol = alldata(inp).nbchan;
 dpts = length(alldata(inp).data(:,1)); %this returns the total number of datapoints
 inq_col = 1;
+dt = 0.05;% msec
+Fs = 1/dt;% msec
 
-data_Matrix = [alldata(inp).times alldata(inp).data(:,inq_col)];
-
+data_Matrix = [alldata(inp).times, alldata(inp).data(:,inq_col)];
+% for inp=5, total length = 135s
 
 %% 10-20 nsystem EEG (These lines remove headers from text data, if implemented)
 % NumCol=2;
@@ -26,7 +28,6 @@ data_Matrix = [alldata(inp).times alldata(inp).data(:,inq_col)];
 % end
 % inq_col = 2;
 
-
 %% Plottings
 figure; hold on,
 plot(data_Matrix(:,1),data_Matrix(:,2));
@@ -34,11 +35,10 @@ plot(data_Matrix(:,1),data_Matrix(:,2));
 
 %% Find the peaks to select the individual trials
 % --- Note: we should finally use the DBS onset for this purpose
-dt = 0.05;% msec
-Fs = 1/dt;% msec
 sig = data_Matrix(35e3:250e3,2); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
+% 35e3:250e3 is 10.75s, you can change this.
 sig = -(sig - mean(sig));
-figure; plot(sig)
+figure; plot(data_Matrix(35e3:250e3,1),sig)
 
 a_max = max(sig);
 Amp_th = a_max/10;
@@ -60,17 +60,23 @@ for i = 1:length(indx)
     [pks,locs] = max(sig(indx(i)-a:indx(i)+a));
     indx_pks(i) = indx(i) - a - 1 + locs;
 end
-L_sel = 0.2e3/dt;% L_sel = 50; %the length of the whole template
+
+L_sel_ms = 0.2e3;% each individual selected segment length is 200ms, you can change this.
+L_sel = L_sel_ms/dt; % number of time points in the above segment length.
+time_vec_sel = linspace(0,L_sel_ms,L_sel+1);
 sig_N = zeros(length(indx),L_sel+1);
+
 for i = 1:length(indx)
-%     sig_N(i,:) = sig(indx_pks(i)-L_sel/2:indx_pks(i)+L_sel/2)';
-    sig_N(i,:) = sig(indx_pks(i) - 20 : indx_pks(i)+L_sel - 20)';
+    sig_N(i,:) = sig(indx_pks(i) - 20 : indx_pks(i)+L_sel - 20)'; 
+    % selected individual segment with length L_sel_ms starts from "1ms to the left of the peak"
 end
 
-figure; plot(sig_N(1:end,:)','k')
+figure; plot(time_vec_sel, sig_N(1:end,:)','k')
 hold on,
-plot(mean(sig_N,1),'r','LineWidth',3)
+plot(time_vec_sel, mean(sig_N,1),'r','LineWidth',3) % mean of all individual trials at each time point;
+                                      % the red line is thicker
 title('Individual trials')
+
 % %% Interpolation --> it should be based on the onset of DBS recorded by device
 % tx = 0:length(sig_N)-1;
 % tx_In = 0:0.05:length(sig_N)-1;
@@ -83,7 +89,6 @@ title('Individual trials')
 % hold on,
 % plot(mean(sig_In,2),'r','LineWidth',3)
 
-
 %% Crop the individual trials from their min, and normalize them
 sig_test = zeros(size(sig_N));
 d = zeros(length(sig_N),1);
@@ -94,12 +99,15 @@ for i = 1:size(sig_N,1)
     d(1:length(s_test),i) = s_test';
 
 end
-figure; plot(d)
+figure; plot(time_vec_sel,d)
 title('individual trials trimmed from their min')
-
+% For each individual trial, this returns the the signal segment starting
+% from the min. Then it is presented as the negative, so the starting point
+% has the largest amplitude.
 
 %% Fitting spline to each individual (purpose: to further remove the common signal (information) from each indiviual trial)
-L_seg = 200; % samples --> this is for the artifact interval only             
+L_seg_ms = 10;
+L_seg = L_seg_ms/dt; % samples --> this is for the artifact interval only
 Des = mean(d,2);%
 Ni = [Des(1:L_seg)];% ; zeros(length(Des)-200,1)];% signal to be smoothed (estimated by spline method)
 numBin = 7;
@@ -113,8 +121,8 @@ b = [tt(1):numBin*dt:tt(end)];% knots
 mu_i = [mu_i_;zeros(length(Des)-L_seg,1)]; % The smoothed signal   
 
 figure; hold on,
-plot(Des,'k')
-plot(mu_i,'r')
+plot(time_vec_sel,Des,'k')
+plot(time_vec_sel,mu_i,'r')
 legend('Average of all trials','smoothed estimate')
 
 %% Adaptive Filtering
@@ -127,9 +135,9 @@ for i = 1:size(d,2)
     err_nlms(:,i) = err;
 end
 
-figure; plot(err_nlms(:,1),'k')
+figure; plot(time_vec_sel,err_nlms(:,1),'k')
 hold on,
-plot(d(:,1),'r')
+plot(time_vec_sel,d(:,1),'r')
 legend('Reconstructed signal(one trial)','The original trial')
-figure; plot(err_nlms,'k')
+figure; plot(time_vec_sel,err_nlms,'k')
 title('Reconstructed signal')
