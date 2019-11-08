@@ -6,7 +6,8 @@ dpts = length(alldata(inp).data(:,1)); %this returns the total number of datapoi
 inq_col = 1;
 dt = 0.05;% msec
 Fs = 1/dt;% msec
-
+Nor = 1; %Normalize = 1 means that you will obtain normalized data for this program.
+         % If you want the original scale, put Nor=0.
 data_Matrix = [alldata(inp).times, alldata(inp).data(:,inq_col)];
 % for inp=5, total length = 135s
 
@@ -95,7 +96,11 @@ d = zeros(length(sig_N),1);
 for i = 1:size(sig_N,1)
     [pks,ind_min] = min(sig_N(i,:));
     test = -sig_N(i,ind_min:end);
-    s_test = (test-mean(test))/max((test-mean(test)));
+    if Nor 
+        s_test = (test-mean(test))/max((test-mean(test)));
+    else
+        s_test = (test-mean(test));
+    end
     d(1:length(s_test),i) = s_test';
 
 end
