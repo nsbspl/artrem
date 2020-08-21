@@ -1,62 +1,79 @@
-%% Import the data from 'alldata.m'
-%load alldata;
-inp = 5; %input('please enter the number of trial. 1= s05, 2=s06, 3=STNon, 4=STNoff, 5=TMS-EEG:   ');
-NumCol = alldata(inp).nbchan;
-dpts = length(alldata(inp).data(:,1)); %this returns the total number of datapoints
+%% Import the data
+
+% path including file to be imported ** PLEASE SPECIFY
+addpath("C:\Users\NeurotechUofT\Downloads\");
+addpath("C:\Users\NeurotechUofT\Downloads\fieldtrip");
+addpath(genpath("C:\Users\NeurotechUofT\Downloads\pwd"));
+filename = 'Stop-signal_eDBS_Dec17_2018_s05-Block1.cnt';
+
+%% importing file using FieldTrip
+cfg                     = [];
+cfg.dataset             = filename;
+cfg.channel             = {'L2'};                                          % Please enter the desired channels here
+cfg.continuous = 'yes';
+raw = ft_preprocessing(cfg);
+
+
+%% Import metadata
+
+dpts = raw.sampleinfo(2); %total no. of datapoints
+sampling_rate = raw.fsample; %2e4
+dt = 1/sampling_rate; %0.05 msec
+
+% helper variables:
+NumCol = raw.sampleinfo(2);
 inq_col = 1;
-dt = 0.05;% msec
-Fs = 1/dt;% msec
 Nor = 1; %Normalize = 1 means that you will obtain normalized data for this program.
          % If you want the original scale, put Nor=0.
-data_Matrix = [alldata(inp).times, alldata(inp).data(:,inq_col)];
-% for inp=5, total length = 135s
 
+%displaying the imported metadata:
+fprintf('this dataset is %s seconds long, equivalent to %d datapoints.\n',...
+    num2str(length(raw.time{1,1})), dpts)
+fprintf('the sampling rate is %s Hz.\n', num2str(sampling_rate))
 
-%% Plottings
+%%
+tbnds = [36, 36.5];
+tdur = tbnds(2) - tbnds(1);
+tsamp = tbnds.*sampling_rate;
+sdur = tdur * sampling_rate;
+
+time_secs = tbnds(1):dt:tbnds(2);%, sdur+1); %raw.time{1,1};
+time_pts = tsamp(1):tsamp(2);
+
+datamatrix = raw.trial{1,1}(tsamp(1):tsamp(2));
+datamatrix = -(datamatrix - mean(datamatrix)); %makes the mean = 0 as well
+
 figure; hold on,
-plot(data_Matrix(:,1),data_Matrix(:,2));
+plot(time_secs, datamatrix)
+title('the imported section, mean = 0')
+xlabel('time_{seconds}')
+ylabel('v_{μvolts}')
 
+%% Spike finder:
 
-%% Find the peaks to select the individual trials
-% --- Note: we should finally use the DBS onset for this purpose
-sig = data_Matrix(35e3:250e3,2); % selected timeframe (set for prep 1, can be automatized later, e.g. with input)
-% 35e3:250e3 is 10.75s, you can change this.
-sig = -(sig - mean(sig));
-figure; plot(data_Matrix(35e3:250e3,1),sig)
+amp_max = max(datamatrix);
+amp_th = amp_max/3;
 
-a_max = max(sig);
-Amp_th = a_max/10;
-indx = find([0;sig]<Amp_th & [sig;0]>=Amp_th);
+[pks,locs] = findpeaks(datamatrix, 'MinPeakHeight', amp_th);
 
+figure; hold on, findpeaks(datamatrix, 'MinPeakHeight', amp_th);
+title('the imported section of the dataset, mean = 0')
+xlabel('time_{seconds}')
+ylabel('v_{μvolts}')
 
-%% continue
-indx_pks = zeros(length(indx),1);
+%% Cut the epochs:
+% lstim = length(pk_idx);
+% temp_len = 40; % to be set
+% shift_left = 8;
+% lstim = length(pks);
 
-for i = 1:length(indx)
-    a = 10; % 2a is the length of searching interval for the peaks.                  
-    [pks,locs] = max(sig(indx(i)-a:indx(i)+a));
-    indx_pks(i) = indx(i) - a - 1 + locs;
-end
-
-L_sel_ms = 0.2e3;% each individual selected segment length is 200ms, you can change this.
-L_sel = L_sel_ms/dt; % number of time points in the above segment length.
-time_vec_sel = linspace(0,L_sel_ms,L_sel+1);
-sig_N = zeros(length(indx),L_sel+1);
-
-for i = 1:length(indx)
-    sig_N(i,:) = sig(indx_pks(i) - 20 : indx_pks(i)+L_sel - 20)'; 
-    % selected individual segment with length L_sel_ms starts from "1ms to the left of the peak"
-end
-
-figure; plot(time_vec_sel, sig_N(1:end,:)','k')
-hold on,
-plot(time_vec_sel, mean(sig_N,1),'r','LineWidth',3) % mean of all individual trials at each time point;
-                                      % the red line is thicker
-title('Individual trials')
+% GUIDE: cutter(self,locs,shift_left,lstim,temp_len)
+eps = cutter(datamatrix,locs,8,length(pks),40);
 
 %% Crop the individual trials from their min, and normalize them
 sig_test = zeros(size(sig_N));
 d = zeros(length(sig_N),1);
+
 for i = 1:size(sig_N,1)
     [pks,ind_min] = min(sig_N(i,:));
     test = -sig_N(i,ind_min:end);
