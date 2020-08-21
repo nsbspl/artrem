@@ -1,0 +1,9 @@
+Task List for Artifact Removal Project
+- [ ] Automatic start and stop interval
+- [ ] fixing the horizontal flip of the signal
+- [ ] Autocrop -> line 32
+- [ ] using event instead of finding peaks
+- [x] unsing "findpeaks" function instead writing the code manually
+- [ ] fixing discontinuity of the artifact template -> line 77
+- [ ] Automatic import from EEGlab
+- [x] fixing scalloping of the peaks instead of normalization
