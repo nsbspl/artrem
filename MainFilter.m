@@ -3,7 +3,9 @@
 % path including file to be imported ** PLEASE SPECIFY
 addpath("C:\Users\NeurotechUofT\Downloads\");
 addpath("C:\Users\NeurotechUofT\Downloads\fieldtrip");
-addpath(genpath("C:\Users\NeurotechUofT\Downloads\pwd"));
+addpath("C:\Users\NeurotechUofT\Downloads\pwd");
+
+% filename to be imported ** PLEASE SPECIFY
 filename = 'Stop-signal_eDBS_Dec17_2018_s05-Block1.cnt';
 
 %% importing file using FieldTrip
@@ -71,36 +73,37 @@ ylabel('v_{μvolts}')
 eps = cutter(datamatrix,locs,8,length(pks),40);
 
 %% Crop the individual trials from their min, and normalize them
-sig_test = zeros(size(sig_N));
-d = zeros(length(sig_N),1);
-
-for i = 1:size(sig_N,1)
-    [pks,ind_min] = min(sig_N(i,:));
-    test = -sig_N(i,ind_min:end);
-    if Nor 
-        s_test = (test-mean(test))/max((test-mean(test)));
-    else
-        s_test = (test-mean(test));
-    end
-    d(1:length(s_test),i) = s_test';
-
-end
-figure; plot(time_vec_sel,d)
-title('individual trials trimmed from their min')
-% For each individual trial, this returns the the signal segment starting
-% from the min. Then it is presented as the negative, so the starting point
-% has the largest amplitude.
+% sig_test = zeros(size(sig_N));
+% d = zeros(length(sig_N),1);
+% 
+% for i = 1:size(sig_N,1)
+%     [pks,ind_min] = min(sig_N(i,:));
+%     test = -sig_N(i,ind_min:end);
+%     if Nor 
+%         s_test = (test-mean(test))/max((test-mean(test)));
+%     else
+%         s_test = (test-mean(test));
+%     end
+%     d(1:length(s_test),i) = s_test';
+% 
+% end
+% figure; plot(time_vec_sel,d)
+% title('individual trials trimmed from their min')
+% % For each individual trial, this returns the the signal segment starting
+% % from the min. Then it is presented as the negative, so the starting point
+% % has the largest amplitude.
 
 %% Fitting spline to each individual (purpose: to further remove the common signal (information) from each indiviual trial)
-L_seg_ms = 10;
-L_seg = L_seg_ms/dt; % samples --> this is for the artifact interval only
-Des = mean(d,2);%
+L_seg_ms = 4;
+dtm = dt*1000; %dt in ms
+L_seg = L_seg_ms/dtm; % samples --> this is for the artifact interval only
+Des = mean(eps,1);%
 Ni = [Des(1:L_seg)];% ; zeros(length(Des)-200,1)];% signal to be smoothed (estimated by spline method)
 numBin = 7;
-tt = (1:length(Ni))*dt;
-b = [tt(1):numBin*dt:tt(end)];% knots
+tt = (1:length(Ni))*dtm;
+b = [tt(1):numBin*dtm:tt(end)];% knots
         myI = eye(length(b));
-        X = spline(b,myI,tt)*dt;
+        X = spline(b,myI,tt)*dtm;
         ki = (X*X')^-1 * X*Ni;
         mu_i_ = X'*ki;
 
