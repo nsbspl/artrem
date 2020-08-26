@@ -59,7 +59,7 @@ amp_th = amp_max/3;
 [pks,locs] = findpeaks(datamatrix, 'MinPeakHeight', amp_th);
 
 figure; hold on, findpeaks(datamatrix, 'MinPeakHeight', amp_th);
-title('the imported section of the dataset, mean = 0')
+title('the imported section of the dataset, mean = 0, stimulations highlighted')
 xlabel('time_{seconds}')
 ylabel('v_{μvolts}')
 
